@@ -1,6 +1,11 @@
 # ExtrudeMeshTask
 Project to create a Extrude Mesh using Babylon.js
 
+To try out the project,
+Clone the repository and run the following commands:
+   > npm install
+   > npm start
+After the installation is complete, open your browser and navigate to http://localhost:3000/ to load the site.
 
 ## 1. Extruding the Mesh
 
