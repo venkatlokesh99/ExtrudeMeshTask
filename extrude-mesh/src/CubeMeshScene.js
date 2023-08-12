@@ -1,11 +1,12 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import * as BABYLON from "@babylonjs/core";
+import * as GUI from "@babylonjs/gui";
 
 const MOVE_SPEED = 5;
 const HOVER_COLOR = new BABYLON.Color4(12 / 255, 242 / 255, 93 / 255, 1);
 
-function getShared(indices, positions) {
-  const shared = Array.from({ length: indices.length }, () => []);
+function getAdjacentIndices(indices, positions) {
+  const adjacent = Array.from({ length: indices.length }, () => []);
 
   for (let i = 0; i < indices.length; i++) {
     for (let j = 0; j < indices.length; j++) {
@@ -14,13 +15,13 @@ function getShared(indices, positions) {
         positions[3 * indices[i] + 1] === positions[3 * indices[j] + 1] &&
         positions[3 * indices[i] + 2] === positions[3 * indices[j] + 2]
       ) {
-        shared[indices[i]].push(indices[j]);
+        adjacent[indices[i]].push(indices[j]);
       }
     }
-    if (shared[i].length < 6) console.log(i);
+    if (adjacent[i].length < 6) console.log(i);
   }
 
-  return shared;
+  return adjacent;
 }
 
 const CubeMeshScene = () => {
@@ -43,7 +44,7 @@ const CubeMeshScene = () => {
 
     // Create a scene
     const scene = new BABYLON.Scene(engine);
-    scene.clearColor = new BABYLON.Color4(1 / 255, 31 / 255, 38 / 255, 1);
+    scene.clearColor = new BABYLON.Color4(89 / 255, 65 / 255, 89 / 255, 1);
 
     const box = BABYLON.MeshBuilder.CreateBox(
       "box",
@@ -62,7 +63,7 @@ const CubeMeshScene = () => {
       colors = Array.from({ length: (positions.length / 3) * 4 }, () => 1);
 
     const indices = box.getIndices();
-    const shared = getShared(indices, positions);
+    const adjacent = getAdjacentIndices(indices, positions);
 
     const camera = new BABYLON.ArcRotateCamera(
       "camera",
@@ -133,7 +134,7 @@ const CubeMeshScene = () => {
           new Set(
             indices.slice(3 * facet, 3 * facet + 6).reduce((acc, cur) => {
               acc.push(cur);
-              acc.push(...shared[cur]);
+              acc.push(...adjacent[cur]);
               return acc;
             }, [])
           )
@@ -187,6 +188,25 @@ const CubeMeshScene = () => {
       setDragging(false);
       setHitInfo(null);
     };
+
+    const Ui = GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI", true, scene);
+    const Reset = GUI.Button.CreateSimpleButton("Reset", "Reset");
+    Reset.widthInPixels = 220;
+    Reset.heightInPixels = 70;
+    Reset.cornerRadius = 20;
+    Reset.horizontalAlignment = 2;
+    Reset.verticalAlignment = 0;
+    Reset.background = "#2E8844";
+    Reset.color = "##88372E";
+    Reset.paddingRight = "20px";
+    Reset.paddingTop = "20px";
+
+    Reset.onPointerClickObservable.add(function () {
+      box.dispose();
+      scene.dispose();
+      window.location.reload();
+      });
+    Ui.addControl(Reset);
 
     // Clean up on component unmount
     return () => {
